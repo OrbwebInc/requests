@@ -308,6 +308,10 @@ class HTTPConnectionPool(ConnectionPool, RequestMethods):
         if hasattr(err, 'errno') and err.errno in _blocking_errnos:
             raise ReadTimeoutError(self, url, "Read timed out. (read timeout=%s)" % timeout_value)
 
+        # REF: https://github.com/shazow/urllib3/issues/556#issuecomment-115695022
+        if not isinstance(err, str) and hasattr(err, 'strerror'):
+            raise ProtocolError(self, url, "{}".format(err.strerror))
+
         # Catch possible read timeouts thrown as SSL errors. If not the
         # case, rethrow the original. We need to do this because of:
         # http://bugs.python.org/issue10272
